@@ -1,12 +1,14 @@
 {
   "name": "pair-now",
   "main": "./lib/pair-now",
-  "version": "0.0.0",
-  "description": "A short description of your package",
+  "version": "0.1.0",
+  "description": "Pair-programming using Firebase",
   "keywords": [
+    "collaboration",
+    "pair-programming"
   ],
   "activationCommands": {
-    "atom-workspace": "pair-now:toggle"
+    "atom-workspace": ["pair-now:newSession", "pair-now:joinSession", "pair-now:test"]
   },
   "repository": "https://github.com/atom/pair-now",
   "license": "MIT",
@@ -14,5 +16,6 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
+    "firebase": "2.2.9"
   }
 }

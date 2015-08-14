@@ -1,8 +1,11 @@
-// The ui-variables file is provided by base themes provided by Atom.
-//
-// See https://github.com/atom/atom-dark-ui/blob/master/styles/ui-variables.less
-// for a full listing of what's available.
-@import "ui-variables";
+@red-border: solid red 2px;
 
-.pair-now {
+atom-text-editor::shadow {
+  .highlight.pair-now-cursor .region {
+    border-right: @red-border;
+  }
+
+  .line.pair-now-cursor {
+    border-left: @red-border;
+  }
 }
