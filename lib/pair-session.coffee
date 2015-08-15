@@ -16,7 +16,9 @@ class PairSession
   register: (localName, remoteName, cursorChange, textChange) ->
     firebase_project = atom.config.get 'pair-now.firebase_project'
     pairSession = new Firebase("https://#{firebase_project}.firebaseio.com/session/1")
-    pairSession.remove()
+    pairSession.remove() if localName is 'master'
+
+    @editor = pairSession.child('editors/shared')
 
     # Expose local cursor
     @cursor = pairSession.child("cursors/#{localName}")
@@ -36,6 +38,22 @@ class PairSession
         @pushChange = false
         textChange(change)
         @pushChange = true
+
+  share: (sharedEditor) ->
+    @editor.set
+      text: sharedEditor.getText()
+      grammar: sharedEditor.getGrammar().scopeName
+      tabLength: sharedEditor.getTabLength()
+      softTabs: sharedEditor.getSoftTabs()
+
+  onEditorChange: (callback) ->
+    @editor.on 'value', (snapshot) =>
+      remoteEditor = snapshot.val()
+      if remoteEditor?
+        atom.workspace.open().then (editor) =>
+          @pushChange = false
+          callback(remoteEditor, editor)
+          @pushChange = true
 
   updateCursor: (row, col) ->
     @cursor.set
