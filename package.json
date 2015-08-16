@@ -8,7 +8,7 @@
     "pair-programming"
   ],
   "activationCommands": {
-    "atom-workspace": ["pair-now:newSession", "pair-now:joinSession", "pair-now:test"]
+    "atom-workspace": ["pair-now:newSession", "pair-now:joinSession"]
   },
   "repository": "https://github.com/atom/pair-now",
   "license": "MIT",
