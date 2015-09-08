@@ -1,11 +1,13 @@
-@red-border: solid red 2px;
-
 atom-text-editor::shadow {
   .highlight.pair-now-cursor .region {
-    border-right: @red-border;
+    border-right: solid red 2px;
   }
 
-  .line.pair-now-cursor {
-    border-left: @red-border;
+  .line.pair-now-cursor::before {
+    content: ' ';
+    display: inline-block;
+    background: red;
+    width: 2px;
+    margin-right: -2px;
   }
 }
