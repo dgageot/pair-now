@@ -41,6 +41,7 @@ module.exports =
     type = if col > 0 then 'highlight' else 'line'
     editor.decorateMarker(editor.marker, {type: type, class: 'pair-now-cursor'})
 
+  # action = 'join' or 'start'
   participate: (action) ->
     return if @connected
 

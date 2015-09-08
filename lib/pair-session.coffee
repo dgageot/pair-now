@@ -18,6 +18,7 @@ class PairSession
     pairSession = new Firebase("https://#{firebase_project}.firebaseio.com/session/1")
     pairSession.remove() if localName is 'master'
 
+    # Share local editor
     @editor = pairSession.child('editors/shared')
 
     # Expose local cursor
