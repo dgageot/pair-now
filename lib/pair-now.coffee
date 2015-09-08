@@ -18,10 +18,10 @@ module.exports =
     atom.commands.add 'atom-workspace', 'pair-now:joinSession', => @participate('join')
 
     atom.workspace.observeTextEditors (editor) =>
-      @disposables.add editor.buffer.onDidChange (event) =>
-        @pairSession?.updateText(event.oldRange, event.oldText, event.newRange, event.newText)
       @disposables.add editor.onDidChangeCursorPosition (event) =>
         @pairSession?.updateCursor(event.newBufferPosition.row, event.newBufferPosition.column)
+      @disposables.add editor.buffer.onDidChange (event) =>
+        @pairSession?.updateText(event.oldRange, event.oldText, event.newRange, event.newText)
 
   deactivate: ->
     @disposables.dispose()
@@ -45,19 +45,23 @@ module.exports =
   participate: (action) ->
     return if @connected
 
-    @pairSession = new PairSession()
-    @pairSession[action] (cursorPosition) =>
+    onCursorChange = (cursorPosition) =>
+      return unless cursorPosition?
       @showPairCursor(atom.workspace.getActiveTextEditor(), cursorPosition)
-    , (textChange) =>
+
+    onTextChange = (textChange) =>
+      return unless textChange?
       atom.workspace.getActiveTextEditor().buffer.setTextInRange(textChange.oldRange, textChange.newText, undo: 'skip')
+
+    @pairSession = new PairSession()
+    @pairSession[action](onCursorChange, onTextChange)
+
     if action is 'start'
       @pairSession.share(atom.workspace.getActiveTextEditor())
     else
-      @pairSession.onEditorChange (remoteEditor, editor) ->
-        editor.setText(remoteEditor.text)
-        editor.setCursorBufferPosition([0, 0])
-        editor.setTabLength(remoteEditor.tabLength)
-        editor.setSoftTabs(remoteEditor.softTabs)
-        editor.setGrammar(atom.grammars.grammarForScopeName(remoteEditor.grammar))
+      @pairSession.onEditorChange (remoteEditor) =>
+        return unless remoteEditor?
+        atom.workspace.open().then (editor) =>
+          @pairSession.configureEditor(editor, remoteEditor)
 
     @connected = true
