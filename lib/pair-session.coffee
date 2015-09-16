@@ -18,62 +18,90 @@ class PairSession
 
   register: (localName, remoteName, onRemoteCursorChange, onRemoteTextChange) ->
     firebase_project = atom.config.get 'pair-now.firebase_project'
+
+    atom.notifications.addSuccess 'Connect to Firebase'
+    atom.notifications.addSuccess 'Remove previous session when starting a new one'
+    atom.notifications.addSuccess 'Share local editor (editors/shared)'
+    atom.notifications.addSuccess 'Publish local cursor (cursors/#{localName})'
+    atom.notifications.addSuccess 'Publish local text changes (changes/#{localName})'
+    atom.notifications.addSuccess 'Listen for remote cursor location'
+    atom.notifications.addSuccess 'Apply remote cursor location'
+    atom.notifications.addSuccess 'Listen for remote text changes'
+    atom.notifications.addSuccess 'Apply remote text changes'
+    atom.notifications.addSuccess 'Make sure we can\'t connect twice'
+
+    # Connect to Firebase
+    # TODO
     pairSession = new Firebase("https://#{firebase_project}.firebaseio.com/session/1")
+
+    # Remove previous session
+    # TODO
     pairSession.remove() if localName is 'master'
 
     # Share local editor
-    @editor = pairSession.child('editors/shared')
-    # Expose local cursor
+    # TODO
+    @editor = pairSession.child("editor/shared")
+
+    # Publish local cursor
+    # TODO
     @cursor = pairSession.child("cursors/#{localName}")
-    # Expose local changes
+
+    # Publish local text changes
+    # TODO
     @changes = pairSession.child("changes/#{localName}")
 
     # Listen for remote cursor
-    pairSession.child("cursors/#{remoteName}").on 'value', (cursorPosition) =>
+    # TODO
+    pairSession.child("cursors/#{remoteName}").on 'value', (cursorPosition) ->
       onRemoteCursorChange(cursorPosition.val())
-    # Listen for remote changes
-    pairSession.child("changes/#{remoteName}").on 'child_added', (textChange) =>
-      @pushChange = false
+
+    # Listen for remote text changes. When applying those changes locally
+    # don't forget to NOT push those changes to Firebase.
+    # TODO
+    pairSession.child("changes/#{remoteName}").on 'child_added', (textChange) ->
       onRemoteTextChange(textChange.val())
-      @pushChange = true
 
-  # share will mark a local editor as shared so that remote user can read its
-  # content.
-  share: (sharedEditor) ->
+  # shareLocalEditor will mark a local editor as shared so that remote user can read its
+  # content. It publishes the text and important settings such as the file type
+  # and tab/space settigns.
+  shareLocalEditor: (text, grammar, tabLength, softTabs) ->
+    console.log "Share the editor text and settings"
+    # TODO
     @editor.set
-      text: sharedEditor.getText()
-      grammar: sharedEditor.getGrammar().scopeName
-      tabLength: sharedEditor.getTabLength()
-      softTabs: sharedEditor.getSoftTabs()
+      text: text
+      grammar: grammar
+      tabLength: tabLength
+      softTabs: softTabs
 
-  # configureEditor will set the text and parameters of a local editor
-  # given the status of a remote editor.
-  # It should NOT trigger a sync since this is already a sync.
-  configureEditor: (editor, remoteEditor) ->
-    @pushChange = false
-    editor.setText(remoteEditor.text)
-    editor.setGrammar(atom.grammars.grammarForScopeName(remoteEditor.grammar))
-    editor.setTabLength(remoteEditor.tabLength)
-    editor.setSoftTabs(remoteEditor.softTabs)
-    editor.setCursorBufferPosition([0, 0])
-    @pushChange = true
+  # onRemoteEditorShared will react to a remote editor being shared.
+  onRemoteEditorShared: (cloneTheEditor) ->
+    # TODO
+    @editor.on 'value', (remoteEditor) ->
+      cloneTheEditor(remoteEditor.val())
 
-  # onEditorChange will react to a change on a remote shared editor.
-  onEditorChange: (callback) ->
-    @editor.on 'value', (remoteEditor) =>
-      callback(remoteEditor.val())
-
-  # updateCursor will be notified when the local cursor changes.
-  updateCursor: (row, col) ->
+  # localCursorChanged will be notified when the local cursor changes.
+  localCursorChanged: (row, col) ->
+    console.log "Cursor moved row=${row}, col=${col}. We should push that to firebase"
+    # TODO
     @cursor.set
       row: row
       col: col
 
-  # updateText will be notified when the local text changes.
-  updateText: (oldRange, oldText, newRange, newText) ->
+  # localTextChanged will be notified when the local text changes.
+  localTextChanged: (oldRange, oldText, newRange, newText) ->
     return unless @pushChange
+    console.log "Text changed oldRange=${oldRange}, oldText=${oldText}, newRange=${newRange}, newText=${newText}"
+    console.log "We should push that to firebase"
+    # TODO
     @changes.push
       oldRange: oldRange
       oldText: oldText
       newRange: newRange
       newText: newText
+
+  # withoutPush will execute an action without notification to firebase
+  # This is useful to avoid cycles.
+  withoutPush: (callback) ->
+    @pushChange = false
+    callback()
+    @pushChange = true
