@@ -66,6 +66,8 @@ module.exports =
     @pairSession[action](onRemoteCursorChange, onRemoteTextChange)
 
     if action is 'start'
+      atom.notifications.addSuccess 'You started a Pair-Now session'
+
       # If we start a session we start with sharing the active editor
       activeEditor = atom.workspace.getActiveTextEditor()
       text = activeEditor.getText()
@@ -75,6 +77,8 @@ module.exports =
 
       @pairSession.shareLocalEditor(text, grammar, tabLength, softTabs)
     else
+      atom.notifications.addSuccess 'You joined a Pair-Now session'
+
       # If we join a session we start with cloning the remote shared editor
       @pairSession.onRemoteEditorShared (remoteEditor) =>
         return unless remoteEditor?
